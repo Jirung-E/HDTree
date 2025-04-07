@@ -128,11 +128,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="aabb.cpp" />
+    <ClCompile Include="ebr.cpp" />
+    <ClCompile Include="ebr_set.cpp" />
+    <ClCompile Include="hdtree.cpp" />
     <ClCompile Include="kdtree.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aabb.h" />
+    <ClInclude Include="ebr.h" />
+    <ClInclude Include="ebr_set.h" />
+    <ClInclude Include="hdtree.h" />
     <ClInclude Include="kdtree.h" />
     <ClInclude Include="vec3.h" />
   </ItemGroup>
