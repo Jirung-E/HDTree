@@ -7,15 +7,31 @@ class EbrLfSet {
 private:
     LfNode head;
     LfNode tail;
-    alignas(64) Ebr ebr;
+    Ebr& ebr;
 
 public:
-    EbrLfSet();
+    EbrLfSet(Ebr& ebr);
 
 public:
     void clear();
-    void find(int x, LfNode*& prev, LfNode*& curr);
-    bool add(int x);
-    bool remove(int x);
-    bool contains(int x);
+    void find(Ebr::Accessor& ebr, int x, LfNode*& prev, LfNode*& curr);
+    bool add(Ebr::Accessor& ebr, int x);
+    bool remove(Ebr::Accessor& ebr, int x);
+    bool contains(Ebr::Accessor& ebr, int x);
+
+    class Accessor {
+    private:
+        EbrLfSet& set;
+        Ebr::Accessor ebr_accessor;
+
+    public:
+        Accessor(EbrLfSet& set);
+
+    public:
+        void clear();
+        void find(int x, LfNode*& prev, LfNode*& curr);
+        bool add(int x);
+        bool remove(int x);
+        bool contains(int x);
+    };
 };

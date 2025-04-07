@@ -1,10 +1,10 @@
 #include "ebr_set.h"
 
 
-EbrLfSet::EbrLfSet():
+EbrLfSet::EbrLfSet(Ebr& ebr):
     head { std::numeric_limits<int>::min() },
     tail { std::numeric_limits<int>::max() },
-    ebr { 16 }
+    ebr { ebr }
 {
     head.next.set_ptr(&tail);
 }
@@ -17,10 +17,10 @@ void EbrLfSet::clear() {
         delete p;
     }
 
-    ebr.clear();
+    ebr.clear(0);
 }
 
-void EbrLfSet::find(int x, LfNode*& prev, LfNode*& curr) {
+void EbrLfSet::find(Ebr::Accessor& ebr, int x, LfNode*& prev, LfNode*& curr) {
     while(true) {
     retry:
         prev = &head;
@@ -44,12 +44,12 @@ void EbrLfSet::find(int x, LfNode*& prev, LfNode*& curr) {
     }
 }
 
-bool EbrLfSet::add(int x) {
+bool EbrLfSet::add(Ebr::Accessor& ebr, int x) {
     auto p = ebr.get_node(x);
     ebr.start_epoch();
     while(true) {
         LfNode* prev, * curr;
-        find(x, prev, curr);
+        find(ebr, x, prev, curr);
 
         if(curr->key == x) {
             ebr.end_epoch();
@@ -66,11 +66,11 @@ bool EbrLfSet::add(int x) {
     }
 }
 
-bool EbrLfSet::remove(int x) {
+bool EbrLfSet::remove(Ebr::Accessor& ebr, int x) {
     ebr.start_epoch();
     while(true) {
         LfNode* prev, * curr;
-        find(x, prev, curr);
+        find(ebr, x, prev, curr);
         if(curr->key != x) {
             ebr.end_epoch();
             return false;
@@ -87,7 +87,7 @@ bool EbrLfSet::remove(int x) {
     }
 }
 
-bool EbrLfSet::contains(int x) {
+bool EbrLfSet::contains(Ebr::Accessor& ebr, int x) {
     ebr.start_epoch();
     LfNode* curr = head.next.get_ptr();
     while(curr->key < x) {
@@ -96,4 +96,32 @@ bool EbrLfSet::contains(int x) {
     bool result = (false == curr->next.get_removed()) && (curr->key == x);
     ebr.end_epoch();
     return result;
+}
+
+
+EbrLfSet::Accessor::Accessor(EbrLfSet& set):
+    set { set },
+    ebr_accessor { set.ebr }
+{
+
+}
+
+void EbrLfSet::Accessor::clear() {
+    set.clear();
+}
+
+void EbrLfSet::Accessor::find(int x, LfNode*& prev, LfNode*& curr) {
+    set.find(ebr_accessor, x, prev, curr);
+}
+
+bool EbrLfSet::Accessor::add(int x) {
+    return set.add(ebr_accessor, x);
+}
+
+bool EbrLfSet::Accessor::remove(int x) {
+    return set.remove(ebr_accessor, x);
+}
+
+bool EbrLfSet::Accessor::contains(int x) {
+    return set.contains(ebr_accessor, x);
 }
