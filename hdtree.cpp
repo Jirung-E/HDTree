@@ -43,7 +43,8 @@ bool Node::cas(Node** node, ptrdiff_t old_ptr, ptrdiff_t new_ptr) {
 
 HDTree::HDTree():
     root { new Node { 0, INF1, 0.0 } }, 
-    nncs { }
+    nncs { },
+    ebr { MAX_THREADS }
 {
     root->rt = new Node { 0, 0.0, INF3 };
     root->lt = new Node { 0, INF2, 0.0 };
@@ -52,22 +53,22 @@ HDTree::HDTree():
 }
 
 bool HDTree::contains(double k[DIMENSION]) {
-    start_op();
+    ebr.start_epoch();
     search_field f;
     search(f, k);
     if(!isMark(f.cr)) {
         if(isEqual(k, f.cr->k)) {
             sync(f.pr, f.cr);
-            end_op();
+            ebr.end_epoch();
             return true;
         }
     }
-    end_op();
+    ebr.end_epoch();
     return false;
 }
 
 bool HDTree::insert(double k[DIMENSION]) {
-    start_op();
+    ebr.start_epoch();
     search_field f;
     while(true) {
         search(f, k);
@@ -95,7 +96,7 @@ bool HDTree::insert(double k[DIMENSION]) {
                 f.cr = new_leaf;
                 f.cr_dir = new_leaf_dir;
                 sync(f.pr, f.cr);
-                end_op();
+                ebr.end_epoch();
                 return true;
             }
             else {
@@ -108,14 +109,14 @@ bool HDTree::insert(double k[DIMENSION]) {
             }
         }
         else {
-            end_op();
+            ebr.end_epoch();
             return false;
         }
     }
 }
 
 bool HDTree::remove(double k[DIMENSION]) {
-    start_op();
+    ebr.start_epoch();
     search_field f;
     RemoveMode mode = INJECTION;
     Node* del = nullptr;
@@ -123,14 +124,14 @@ bool HDTree::remove(double k[DIMENSION]) {
         search(f, k);
         if(INJECTION == mode) {
             if(!isEqual(k, f.cr->k)) {
-                end_op();
+                ebr.end_epoch();
                 return false;
             }
             del = f.cr;
             if(f.pr->cas_child(f.cr, nullptr, f.cr, MARK, f.cr_dir)) {
                 mod = CLEANUP;
                 if(cleanup(f)) {
-                    end_op();
+                    ebr.end_epoch();
                     return true;
                 }
             }
@@ -143,11 +144,11 @@ bool HDTree::remove(double k[DIMENSION]) {
         }
         else {
             if(del != f.cr) {
-                end_op();
+                ebr.end_epoch();
                 return true;
             }
             else if(cleanup(f)) {
-                end_op();
+                ebr.end_epoch();
                 return true;
             }
         }

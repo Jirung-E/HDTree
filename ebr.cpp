@@ -43,7 +43,7 @@ bool Sptr::cas(LfNode* old_p, LfNode* new_p, bool old_m, bool new_m) {
 }
 
 
-LfNode::LfNode(const AABB& v):
+LfNode::LfNode(const int& v):
     key { v },
     ebr_number { 0 }
 {
@@ -84,7 +84,7 @@ void Ebr::end_epoch() {
     epoch_array[thread_id].value = 0;
 }
 
-LfNode* Ebr::get_node(const AABB& x) {
+LfNode* Ebr::get_node(const int& x) {
     if(true == m_free_queue.empty()) {
         return new LfNode { x };
     }

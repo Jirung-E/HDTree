@@ -130,7 +130,12 @@
     <ClCompile Include="aabb.cpp" />
     <ClCompile Include="ebr.cpp" />
     <ClCompile Include="ebr_set.cpp" />
-    <ClCompile Include="hdtree.cpp" />
+    <ClCompile Include="hdtree.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="kdtree.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -138,7 +143,12 @@
     <ClInclude Include="aabb.h" />
     <ClInclude Include="ebr.h" />
     <ClInclude Include="ebr_set.h" />
-    <ClInclude Include="hdtree.h" />
+    <ClInclude Include="hdtree.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="kdtree.h" />
     <ClInclude Include="vec3.h" />
   </ItemGroup>

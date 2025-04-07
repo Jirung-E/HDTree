@@ -2,8 +2,6 @@
 #define __EBR_H__
 
 
-#include "aabb.h"
-
 #include <vector>
 #include <atomic>
 
@@ -27,12 +25,12 @@ public:
 
 class LfNode {
 public:
-    AABB key;
+    int key;
     Sptr next;
     int ebr_number;
 
 public:
-    LfNode(const AABB& v);
+    LfNode(const int& v);
 };
 
 
@@ -55,7 +53,7 @@ public:
     void start_epoch();
     void end_epoch();
 
-    LfNode* get_node(const AABB& x);
+    LfNode* get_node(const int& x);
 };
 
 
