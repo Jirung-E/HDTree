@@ -119,10 +119,13 @@ int main() {
 		for(auto& v : history)
 			v.clear();
 		std::vector<std::thread> tv;
-		auto start_t = high_resolution_clock::now();
+        std::vector<EbrLfSet::Accessor> accessors;
 		for(int i = 0; i < n; ++i) {
-			auto accessor = my_set.get_accessor();
-			tv.emplace_back(worker_check, &accessor, n, i);
+			accessors.emplace_back(my_set.get_accessor());
+		}
+		auto start_t = high_resolution_clock::now();
+        for(int i = 0; i < n; ++i) {
+			tv.emplace_back(worker_check, &accessors[i], n, i);
 		}
 		for(auto& th : tv)
 			th.join();
@@ -142,10 +145,14 @@ int main() {
 		my_set.clear();
         my_set.reset_accessor_count();
 		std::vector<std::thread> tv;
+		std::vector<EbrLfSet::Accessor> accessors;
+		for(int i = 0; i < n; ++i) {
+			accessors.emplace_back(my_set.get_accessor());
+		}
 		auto start_t = high_resolution_clock::now();
 		for(int i = 0; i < n; ++i) {
             auto accessor = my_set.get_accessor();
-			tv.emplace_back(benchmark, &accessor, i, n);
+			tv.emplace_back(benchmark, &accessors[i], i, n);
 		}
 		for(auto& th : tv)
 			th.join();
