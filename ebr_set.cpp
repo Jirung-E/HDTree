@@ -20,7 +20,7 @@ void EbrLfSet::clear() {
     ebr.clear();
 }
 
-void EbrLfSet::find(int x, LfNode*& prev, LfNode*& curr) {
+void EbrLfSet::find(int idx, int x, LfNode*& prev, LfNode*& curr) {
     while(true) {
     retry:
         prev = &head;
@@ -32,7 +32,7 @@ void EbrLfSet::find(int x, LfNode*& prev, LfNode*& curr) {
                 LfNode* succ = curr->next.get_ptr(&removed);
                 if(removed == true) {
                     if(false == prev->next.cas(curr, succ, false, false)) goto retry;
-                    ebr.reuse(curr);
+                    ebr.reuse(idx, curr);
                     curr = succ;
                 }
             } while(removed == true);
@@ -44,35 +44,35 @@ void EbrLfSet::find(int x, LfNode*& prev, LfNode*& curr) {
     }
 }
 
-bool EbrLfSet::add(int x) {
-    auto p = ebr.get_node(x);
-    ebr.start_epoch();
+bool EbrLfSet::add(int idx, int x) {
+    auto p = ebr.get_node(idx, x);
+    ebr.start_epoch(idx);
     while(true) {
         LfNode* prev, * curr;
-        find(x, prev, curr);
+        find(idx, x, prev, curr);
 
         if(curr->key == x) {
-            ebr.end_epoch();
+            ebr.end_epoch(idx);
             delete p;
             return false;
         }
         else {
             p->next.set_ptr(curr);
             if(true == prev->next.cas(curr, p, false, false)) {
-                ebr.end_epoch();
+                ebr.end_epoch(idx);
                 return true;
             }
         }
     }
 }
 
-bool EbrLfSet::remove(int x) {
-    ebr.start_epoch();
+bool EbrLfSet::remove(int idx, int x) {
+    ebr.start_epoch(idx);
     while(true) {
         LfNode* prev, * curr;
-        find(x, prev, curr);
+        find(idx, x, prev, curr);
         if(curr->key != x) {
-            ebr.end_epoch();
+            ebr.end_epoch(idx);
             return false;
         }
         else {
@@ -80,20 +80,20 @@ bool EbrLfSet::remove(int x) {
             if(false == curr->next.cas(succ, succ, false, true))
                 continue;
             if(true == prev->next.cas(curr, succ, false, false))
-                ebr.reuse(curr);
-            ebr.end_epoch();
+                ebr.reuse(idx, curr);
+            ebr.end_epoch(idx);
             return true;
         }
     }
 }
 
-bool EbrLfSet::contains(int x) {
-    ebr.start_epoch();
+bool EbrLfSet::contains(int idx, int x) {
+    ebr.start_epoch(idx);
     LfNode* curr = head.next.get_ptr();
     while(curr->key < x) {
         curr = curr->next.get_ptr();
     }
     bool result = (false == curr->next.get_removed()) && (curr->key == x);
-    ebr.end_epoch();
+    ebr.end_epoch(idx);
     return result;
 }

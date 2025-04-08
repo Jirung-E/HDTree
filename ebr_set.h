@@ -14,8 +14,8 @@ public:
 
 public:
     void clear();
-    void find(int x, LfNode*& prev, LfNode*& curr);
-    bool add(int x);
-    bool remove(int x);
-    bool contains(int x);
+    void find(int idx, int x, LfNode*& prev, LfNode*& curr);
+    bool add(int idx, int x);
+    bool remove(int idx, int x);
+    bool contains(int idx, int x);
 };

@@ -3,6 +3,7 @@
 
 
 #include <vector>
+#include <queue>
 #include <atomic>
 
 
@@ -42,6 +43,7 @@ class Ebr {
 private:
     std::atomic_int epoch_counter;
     alignas(64) std::vector<AlignedAtomicInt> epoch_array;
+    std::vector<std::queue<LfNode*>> free_queue;
 
 public:
     Ebr(int max_threads);
@@ -49,11 +51,11 @@ public:
 
 public:
     void clear();
-    void reuse(LfNode* node);
-    void start_epoch();
-    void end_epoch();
+    void reuse(int idx, LfNode* node);
+    void start_epoch(int idx);
+    void end_epoch(int idx);
 
-    LfNode* get_node(const int& x);
+    LfNode* get_node(int idx, const int& x);
 };
 
 

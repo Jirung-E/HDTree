@@ -1,4 +1,3 @@
-#include "ebr.h"
 #include "ebr_set.h"
 
 #include <iostream>
@@ -7,8 +6,6 @@
 #include <vector>
 #include <chrono>
 
-
-extern thread_local int thread_id;
 
 const int NUM_TEST = 4'000'000;
 const int KEY_RANGE = 1000;
@@ -26,23 +23,22 @@ public:
 std::array<std::vector<HISTORY>, 16> history;
 
 void worker_check(EbrLfSet* my_set, int num_threads, int th_id) {
-	thread_id = th_id;
 	for(int i = 0; i < NUM_TEST / num_threads; ++i) {
 		int op = rand() % 3;
 		switch(op) {
 			case 0: {
 				int v = rand() % KEY_RANGE;
-				history[thread_id].emplace_back(0, v, my_set->add(v));
+				history[th_id].emplace_back(0, v, my_set->add(th_id, v));
 				break;
 			}
 			case 1: {
 				int v = rand() % KEY_RANGE;
-				history[thread_id].emplace_back(1, v, my_set->remove(v));
+				history[th_id].emplace_back(1, v, my_set->remove(th_id, v));
 				break;
 			}
 			case 2: {
 				int v = rand() % KEY_RANGE;
-				history[thread_id].emplace_back(2, v, my_set->contains(v));
+				history[th_id].emplace_back(2, v, my_set->contains(th_id, v));
 				break;
 			}
 		}
@@ -75,13 +71,13 @@ void check_history(EbrLfSet* my_set, int num_threads) {
 			exit(-1);
 		}
 		else if(val == 0) {
-			if(my_set->contains(i)) {
+			if(my_set->contains(0, i)) {
 				std::cout << "ERROR. The value " << i << " should not exists.\n";
 				exit(-1);
 			}
 		}
 		else if(val == 1) {
-			if(false == my_set->contains(i)) {
+			if(false == my_set->contains(0, i)) {
 				std::cout << "ERROR. The value " << i << " shoud exists.\n";
 				exit(-1);
 			}
@@ -94,18 +90,16 @@ void check_history(EbrLfSet* my_set, int num_threads) {
 void benchmark(EbrLfSet* my_set, const int th_id, const int num_thread) {
 	int key;
 
-	thread_id = th_id;
-
 	for(int i = 0; i < NUM_TEST / num_thread; i++) {
 		switch(rand() % 3) {
 			case 0: key = rand() % KEY_RANGE;
-				my_set->add(key);
+				my_set->add(th_id, key);
 				break;
 			case 1: key = rand() % KEY_RANGE;
-				my_set->remove(key);
+				my_set->remove(th_id, key);
 				break;
 			case 2: key = rand() % KEY_RANGE;
-				my_set->contains(key);
+				my_set->contains(th_id, key);
 				break;
 			default: std::cout << "Error\n";
 				exit(-1);

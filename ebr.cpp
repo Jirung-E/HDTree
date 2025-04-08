@@ -4,9 +4,6 @@
 #include <queue>
 
 
-thread_local int thread_id;
-
-
 Sptr::Sptr(): sptr { 0 } {
 
 }
@@ -51,12 +48,10 @@ LfNode::LfNode(const int& v):
 }
 
 
-thread_local std::queue<LfNode*> m_free_queue;
-
-
 Ebr::Ebr(int max_threads):
     epoch_counter { 1 },
-    epoch_array(max_threads)
+    epoch_array(max_threads),
+    free_queue(max_threads)
 {
 
 }
@@ -66,38 +61,40 @@ Ebr::~Ebr() {
 }
 
 void Ebr::clear() {
-    while(false == m_free_queue.empty()) {
-        delete m_free_queue.front();
-        m_free_queue.pop();
+    for(auto& fq : free_queue) {
+        while(false == fq.empty()) {
+            delete fq.front();
+            fq.pop();
+        }
     }
     epoch_counter = 1;
 }
 
-void Ebr::reuse(LfNode* node) {
+void Ebr::reuse(int idx, LfNode* node) {
     node->ebr_number = epoch_counter;
-    m_free_queue.push(node);
+    free_queue[idx].push(node);
 }
-void Ebr::start_epoch() {
+void Ebr::start_epoch(int idx) {
     int epoch = epoch_counter++;
-    epoch_array[thread_id].value = epoch;
+    epoch_array[idx].value = epoch;
 }
-void Ebr::end_epoch() {
-    epoch_array[thread_id].value = 0;
+void Ebr::end_epoch(int idx) {
+    epoch_array[idx].value = 0;
 }
 
-LfNode* Ebr::get_node(const int& x) {
-    if(true == m_free_queue.empty()) {
+LfNode* Ebr::get_node(int idx, const int& x) {
+    if(true == free_queue[idx].empty()) {
         return new LfNode { x };
     }
 
-    LfNode* p = m_free_queue.front();
+    LfNode* p = free_queue[idx].front();
     for(auto& ea : epoch_array) {
         int epoch = ea.value;
         if((epoch != 0) && (epoch < p->ebr_number)) {
             return new LfNode { x };
         }
     }
-    m_free_queue.pop();
+    free_queue[idx].pop();
     p->key = x;
     std::atomic_thread_fence(std::memory_order_seq_cst);
     p->next.set_ptr(nullptr);
