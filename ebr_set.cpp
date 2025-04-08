@@ -1,10 +1,31 @@
 #include "ebr_set.h"
 
 
+EbrLfSet::Accessor::Accessor(EbrLfSet* set):
+    set { set },
+    accessor_idx { set->accessor_count++ }
+{
+
+}
+
+bool EbrLfSet::Accessor::add(int x) {
+    return set->add(accessor_idx, x);
+}
+
+bool EbrLfSet::Accessor::remove(int x) {
+    return set->remove(accessor_idx, x);
+}
+
+bool EbrLfSet::Accessor::contains(int x) {
+    return set->contains(accessor_idx, x);
+}
+
+
 EbrLfSet::EbrLfSet(int max_threads):
     head { std::numeric_limits<int>::min() },
     tail { std::numeric_limits<int>::max() },
-    ebr { max_threads }
+    ebr { max_threads },
+    accessor_count { 0 }
 {
     head.next.set_ptr(&tail);
 }
@@ -18,6 +39,23 @@ void EbrLfSet::clear() {
     }
 
     ebr.clear();
+}
+
+void EbrLfSet::reset_accessor_count() {
+    accessor_count = 0;
+}
+
+bool EbrLfSet::contains(int x) {
+    LfNode* curr = head.next.get_ptr();
+    while(curr->key < x) {
+        curr = curr->next.get_ptr();
+    }
+    bool result = (false == curr->next.get_removed()) && (curr->key == x);
+    return result;
+}
+
+EbrLfSet::Accessor EbrLfSet::get_accessor() {
+    return Accessor { this };
 }
 
 void EbrLfSet::find(int idx, int x, LfNode*& prev, LfNode*& curr) {

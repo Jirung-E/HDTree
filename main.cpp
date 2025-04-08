@@ -22,23 +22,23 @@ public:
 
 std::array<std::vector<HISTORY>, 16> history;
 
-void worker_check(EbrLfSet* my_set, int num_threads, int th_id) {
+void worker_check(EbrLfSet::Accessor* my_set, int num_threads, int th_id) {
 	for(int i = 0; i < NUM_TEST / num_threads; ++i) {
 		int op = rand() % 3;
 		switch(op) {
 			case 0: {
 				int v = rand() % KEY_RANGE;
-				history[th_id].emplace_back(0, v, my_set->add(th_id, v));
+				history[th_id].emplace_back(0, v, my_set->add(v));
 				break;
 			}
 			case 1: {
 				int v = rand() % KEY_RANGE;
-				history[th_id].emplace_back(1, v, my_set->remove(th_id, v));
+				history[th_id].emplace_back(1, v, my_set->remove(v));
 				break;
 			}
 			case 2: {
 				int v = rand() % KEY_RANGE;
-				history[th_id].emplace_back(2, v, my_set->contains(th_id, v));
+				history[th_id].emplace_back(2, v, my_set->contains(v));
 				break;
 			}
 		}
@@ -71,13 +71,13 @@ void check_history(EbrLfSet* my_set, int num_threads) {
 			exit(-1);
 		}
 		else if(val == 0) {
-			if(my_set->contains(0, i)) {
+			if(my_set->contains(i)) {
 				std::cout << "ERROR. The value " << i << " should not exists.\n";
 				exit(-1);
 			}
 		}
 		else if(val == 1) {
-			if(false == my_set->contains(0, i)) {
+			if(false == my_set->contains(i)) {
 				std::cout << "ERROR. The value " << i << " shoud exists.\n";
 				exit(-1);
 			}
@@ -87,19 +87,19 @@ void check_history(EbrLfSet* my_set, int num_threads) {
 }
 
 
-void benchmark(EbrLfSet* my_set, const int th_id, const int num_thread) {
+void benchmark(EbrLfSet::Accessor* my_set, const int th_id, const int num_thread) {
 	int key;
 
 	for(int i = 0; i < NUM_TEST / num_thread; i++) {
 		switch(rand() % 3) {
 			case 0: key = rand() % KEY_RANGE;
-				my_set->add(th_id, key);
+				my_set->add(key);
 				break;
 			case 1: key = rand() % KEY_RANGE;
-				my_set->remove(th_id, key);
+				my_set->remove(key);
 				break;
 			case 2: key = rand() % KEY_RANGE;
-				my_set->contains(th_id, key);
+				my_set->contains(key);
 				break;
 			default: std::cout << "Error\n";
 				exit(-1);
@@ -115,12 +115,14 @@ int main() {
 
 	for(int n = 1; n <= MAX_THREADS; n = n * 2) {
 		my_set.clear();
+        my_set.reset_accessor_count();
 		for(auto& v : history)
 			v.clear();
 		std::vector<std::thread> tv;
 		auto start_t = high_resolution_clock::now();
 		for(int i = 0; i < n; ++i) {
-			tv.emplace_back(worker_check, &my_set, n, i);
+			auto accessor = my_set.get_accessor();
+			tv.emplace_back(worker_check, &accessor, n, i);
 		}
 		for(auto& th : tv)
 			th.join();
@@ -138,10 +140,12 @@ int main() {
 
 	for(int n = 1; n <= MAX_THREADS; n = n * 2) {
 		my_set.clear();
+        my_set.reset_accessor_count();
 		std::vector<std::thread> tv;
 		auto start_t = high_resolution_clock::now();
 		for(int i = 0; i < n; ++i) {
-			tv.emplace_back(benchmark, &my_set, i, n);
+            auto accessor = my_set.get_accessor();
+			tv.emplace_back(benchmark, &accessor, i, n);
 		}
 		for(auto& th : tv)
 			th.join();
