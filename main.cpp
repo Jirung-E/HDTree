@@ -143,8 +143,9 @@ int main() {
 	//	v.shrink_to_fit();
 	//}
 
-	for(int n = 1; n <= MAX_THREADS; n = n * 2) {
+	for(int n = 2; n <= MAX_THREADS; n = n * 2) {
 		my_set.clear();
+        my_set.clear_accessor();
 		std::vector<std::thread> tv;
 		auto start_t = high_resolution_clock::now();
 		for(int i = 0; i < n; ++i) {

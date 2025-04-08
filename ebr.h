@@ -55,7 +55,7 @@ public:
     ~Ebr();
 
 public:
-    void clear(int idx);
+    void clear();
     void reuse(int idx, LfNode* node);
     void start_epoch(int idx);
     void end_epoch(int idx);
@@ -72,13 +72,14 @@ public:
         Accessor(const Accessor& other);
 
     public:
-        void clear();
         void reuse(LfNode* node);
         void start_epoch();
         void end_epoch();
 
         LfNode* get_node(const int& x);
     };
+
+    void clear_accessor();
 };
 
 

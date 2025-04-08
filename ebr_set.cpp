@@ -17,7 +17,7 @@ void EbrLfSet::clear() {
         delete p;
     }
 
-    ebr.clear(0);
+    ebr.clear();
 }
 
 void EbrLfSet::find(Ebr::Accessor& ebr, int x, LfNode*& prev, LfNode*& curr) {
@@ -100,6 +100,10 @@ bool EbrLfSet::contains(Ebr::Accessor& ebr, int x) {
 
 EbrLfSet::Accessor EbrLfSet::get_accessor() {
     return Accessor { *this };
+}
+
+void EbrLfSet::clear_accessor() {
+    ebr.clear_accessor();
 }
 
 

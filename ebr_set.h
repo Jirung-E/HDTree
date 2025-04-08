@@ -36,4 +36,5 @@ public:
     };
 
     Accessor get_accessor();
+    void clear_accessor();
 };
