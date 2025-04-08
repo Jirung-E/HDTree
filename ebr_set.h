@@ -26,12 +26,14 @@ public:
 
     public:
         Accessor(EbrLfSet& set);
+        Accessor(const Accessor& other);
 
     public:
-        void clear();
         void find(int x, LfNode*& prev, LfNode*& curr);
         bool add(int x);
         bool remove(int x);
         bool contains(int x);
     };
+
+    Accessor get_accessor();
 };

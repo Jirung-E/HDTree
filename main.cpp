@@ -8,7 +8,7 @@
 #include <chrono>
 
 
-const int NUM_TEST = 4000000;
+const int NUM_TEST = 400'000;
 const int KEY_RANGE = 1000;
 const int MAX_THREADS = 16;
 
@@ -148,7 +148,7 @@ int main() {
 		std::vector<std::thread> tv;
 		auto start_t = high_resolution_clock::now();
 		for(int i = 0; i < n; ++i) {
-			EbrLfSet::Accessor accessor { my_set };
+			auto accessor = my_set.get_accessor();
 			tv.emplace_back(benchmark, &accessor, i, n);
 		}
 		for(auto& th : tv)

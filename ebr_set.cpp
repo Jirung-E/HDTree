@@ -98,6 +98,10 @@ bool EbrLfSet::contains(Ebr::Accessor& ebr, int x) {
     return result;
 }
 
+EbrLfSet::Accessor EbrLfSet::get_accessor() {
+    return Accessor { *this };
+}
+
 
 EbrLfSet::Accessor::Accessor(EbrLfSet& set):
     set { set },
@@ -106,8 +110,11 @@ EbrLfSet::Accessor::Accessor(EbrLfSet& set):
 
 }
 
-void EbrLfSet::Accessor::clear() {
-    set.clear();
+EbrLfSet::Accessor::Accessor(const Accessor& other):
+    set { other.set },
+    ebr_accessor { other.ebr_accessor }
+{
+
 }
 
 void EbrLfSet::Accessor::find(int x, LfNode*& prev, LfNode*& curr) {

@@ -69,6 +69,7 @@ public:
 
     public:
         Accessor(Ebr& ebr);
+        Accessor(const Accessor& other);
 
     public:
         void clear();

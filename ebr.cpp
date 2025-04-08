@@ -108,6 +108,13 @@ Ebr::Accessor::Accessor(Ebr& ebr):
 
 }
 
+Ebr::Accessor::Accessor(const Accessor& other):
+    ebr { other.ebr },
+    idx { other.idx.load() }
+{
+
+}
+
 void Ebr::Accessor::clear() {
     ebr.clear(idx);
 }
