@@ -44,6 +44,26 @@ private:
     std::atomic_int epoch_counter;
     alignas(64) std::vector<AlignedAtomicInt> epoch_array;
     std::vector<std::queue<LfNode*>> free_queue;
+    std::atomic_int accessor_counter;
+
+public:
+    class Accessor {
+    private:
+        Ebr* ebr;
+        int accessor_idx;
+
+    private:
+        Accessor(Ebr* ebr, int accessor_idx);
+
+    public:
+        void reuse(LfNode* node);
+        void start_epoch();
+        void end_epoch();
+
+        LfNode* get_node(const int& x);
+
+        friend class Ebr;
+    };
 
 public:
     Ebr(int max_threads);
@@ -51,6 +71,10 @@ public:
 
 public:
     void clear();
+    void reset_accessor_counter();
+    Accessor get_accessor();
+
+private:
     void reuse(int idx, LfNode* node);
     void start_epoch(int idx);
     void end_epoch(int idx);

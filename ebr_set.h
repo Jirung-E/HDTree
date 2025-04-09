@@ -8,13 +8,12 @@ private:
     LfNode head;
     LfNode tail;
     Ebr ebr;
-    std::atomic_int accessor_count;
 
 public:
     class Accessor {
     private:
         EbrLfSet* set;
-        int accessor_idx;
+        Ebr::Accessor ebr_accessor;
 
     private:
         Accessor(EbrLfSet* set);
@@ -32,15 +31,15 @@ public:
 
 public:
     void clear();
-    void reset_accessor_count();
+    void reset_accessor_counter();
     /// thread-safe하지 않은 contains
     bool contains(int x);
     Accessor get_accessor();
 
 private:
-    void find(int idx, int x, LfNode*& prev, LfNode*& curr);
-    bool add(int idx, int x);
-    bool remove(int idx, int x);
+    void find(Ebr::Accessor* ebr_accessor, int x, LfNode*& prev, LfNode*& curr);
+    bool add(Ebr::Accessor* ebr_accessor, int x);
+    bool remove(Ebr::Accessor* ebr_accessor, int x);
     /// thread-safe한 contains
-    bool contains(int idx, int x);
+    bool contains(Ebr::Accessor* ebr_accessor, int x);
 };

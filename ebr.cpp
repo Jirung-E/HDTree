@@ -48,10 +48,35 @@ LfNode::LfNode(const int& v):
 }
 
 
+Ebr::Accessor::Accessor(Ebr* ebr, int accessor_idx):
+    ebr { ebr },
+    accessor_idx { accessor_idx }
+{
+
+}
+
+void Ebr::Accessor::reuse(LfNode* node) {
+    ebr->reuse(accessor_idx, node);
+}
+
+void Ebr::Accessor::start_epoch() {
+    ebr->start_epoch(accessor_idx);
+}
+
+void Ebr::Accessor::end_epoch() {
+    ebr->end_epoch(accessor_idx);
+}
+
+LfNode* Ebr::Accessor::get_node(const int& x) {
+    return ebr->get_node(accessor_idx, x);
+}
+
+
 Ebr::Ebr(int max_threads):
     epoch_counter { 1 },
     epoch_array(max_threads),
-    free_queue(max_threads)
+    free_queue(max_threads),
+    accessor_counter { 0 }
 {
 
 }
@@ -68,6 +93,14 @@ void Ebr::clear() {
         }
     }
     epoch_counter = 1;
+}
+
+void Ebr::reset_accessor_counter() {
+    accessor_counter = 0;
+}
+
+Ebr::Accessor Ebr::get_accessor() {
+    return Accessor { this, accessor_counter++ };
 }
 
 void Ebr::reuse(int idx, LfNode* node) {

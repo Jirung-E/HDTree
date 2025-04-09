@@ -117,7 +117,7 @@ void test_history() {
 	//for(int n = 1; n <= MAX_THREADS; n = n * 2) {
 	for(int n : NUM_THREADS_SET) {
 		my_set.clear();
-		my_set.reset_accessor_count();
+		my_set.reset_accessor_counter();
 		for(auto& v : history)
 			v.clear();
 		std::vector<std::thread> tv;
@@ -148,7 +148,6 @@ void test_history() {
 void test() {
     using namespace std::chrono;
 
-
 	//for(int n = 1; n <= MAX_THREADS; n = n * 2) {
     for(int n : NUM_THREADS_SET) {
 		EbrLfSet my_set { n };
@@ -177,16 +176,18 @@ void test() {
 int main() {
 	using namespace std::chrono;
 
-    test_history();
+	while(true) {
+		test_history();
 
-    const int parallel_set_count = 1;
-	std::vector<std::thread> test_threads;
-	test_threads.reserve(parallel_set_count);
-	for(int i=0; i<parallel_set_count; ++i) {
-        test_threads.emplace_back(test);
+		const int parallel_set_count = 1;
+		std::vector<std::thread> test_threads;
+		test_threads.reserve(parallel_set_count);
+		for(int i=0; i<parallel_set_count; ++i) {
+			test_threads.emplace_back(test);
+		}
+
+		for(auto& th : test_threads) {
+			th.join();
+		}
 	}
-
-    for(auto& th : test_threads) {
-        th.join();
-    }
 }
