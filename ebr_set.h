@@ -34,7 +34,7 @@ public:
     void reset_accessor_counter();
     /// thread-safe하지 않은 contains
     bool contains(int x);
-    Accessor get_accessor();
+    Accessor* new_accessor();
 
 private:
     void find(Ebr::Accessor* ebr_accessor, int x, LfNode*& prev, LfNode*& curr);

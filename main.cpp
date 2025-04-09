@@ -7,7 +7,7 @@
 #include <chrono>
 
 
-const int NUM_TEST = 4'000'000;
+const int NUM_TEST = 400'000;
 const int KEY_RANGE = 1000;
 const int MAX_THREADS = 12;	// 현재컴퓨터가 6코어 12스레드임
 const int NUM_THREADS_SET[] { 1, 2, 3, 4, 6, 12 };
@@ -121,21 +121,25 @@ void test_history() {
 		for(auto& v : history)
 			v.clear();
 		std::vector<std::thread> tv;
-		std::vector<EbrLfSet::Accessor> accessors;
+		std::vector<EbrLfSet::Accessor*> accessors;
 		for(int i = 0; i < n; ++i) {
-			accessors.emplace_back(my_set.get_accessor());
+			accessors.emplace_back(my_set.new_accessor());
 		}
 		auto start_t = high_resolution_clock::now();
 		for(int i = 0; i < n; ++i) {
-			tv.emplace_back(worker_check, &accessors[i], n, i);
+			tv.emplace_back(worker_check, accessors[i], n, i);
 		}
-		for(auto& th : tv)
+		for(auto& th : tv) {
 			th.join();
+		}
 		auto end_t = high_resolution_clock::now();
 		auto exec_t = end_t - start_t;
 		size_t ms = duration_cast<milliseconds>(exec_t).count();
 		std::cout << n << " Threads,  " << ms << "ms.";
 		check_history(&my_set, n);
+        for(auto& accessor : accessors) {
+            delete accessor;
+        }
 	}
 
 	for(auto& v : history) {
@@ -151,24 +155,25 @@ void test() {
 	//for(int n = 1; n <= MAX_THREADS; n = n * 2) {
     for(int n : NUM_THREADS_SET) {
 		EbrLfSet my_set { n };
-		//my_set.clear();
-		//my_set.reset_accessor_count();
 		std::vector<std::thread> tv;
-		std::vector<EbrLfSet::Accessor> accessors;
+		std::vector<EbrLfSet::Accessor*> accessors;
 		for(int i = 0; i < n; ++i) {
-			accessors.emplace_back(my_set.get_accessor());
+			accessors.emplace_back(my_set.new_accessor());
 		}
 		auto start_t = high_resolution_clock::now();
 		for(int i = 0; i < n; ++i) {
-			auto accessor = my_set.get_accessor();
-			tv.emplace_back(benchmark, &accessors[i], i, n);
+			tv.emplace_back(benchmark, accessors[i], i, n);
 		}
-		for(auto& th : tv)
+		for(auto& th : tv) {
 			th.join();
+		}
 		auto end_t = high_resolution_clock::now();
 		auto exec_t = end_t - start_t;
 		size_t ms = duration_cast<milliseconds>(exec_t).count();
         printf("%d Threads,  %zu ms.\n", n, ms);
+        for(auto& accessor : accessors) {
+            delete accessor;
+        }
 	}
 }
 
@@ -176,14 +181,48 @@ void test() {
 int main() {
 	using namespace std::chrono;
 
-	while(true) {
-		test_history();
+	//test_history();
 
-		const int parallel_set_count = 1;
+	//while(true) {
+	//	const int parallel_set_count = 1;
+	//	std::vector<std::thread> test_threads;
+	//	test_threads.reserve(parallel_set_count);
+	//	for(int i=0; i<parallel_set_count; ++i) {
+	//		test_threads.emplace_back(test);
+	//	}
+
+	//	for(auto& th : test_threads) {
+	//		th.join();
+	//	}
+	//}
+
+
+	while(true) {
+        Ebr ebr { MAX_THREADS };
+
+		std::vector<Ebr::Accessor> accessors;
+        accessors.reserve(MAX_THREADS);
+		for(int i=0; i<MAX_THREADS; ++i) {
+            accessors.push_back(ebr.get_accessor());
+		}
+
 		std::vector<std::thread> test_threads;
-		test_threads.reserve(parallel_set_count);
-		for(int i=0; i<parallel_set_count; ++i) {
-			test_threads.emplace_back(test);
+		test_threads.reserve(MAX_THREADS);
+		for(auto& accessor : accessors) {
+			test_threads.emplace_back([&]() {
+				for(int i=0; i<NUM_TEST; ++i) {
+					auto node = accessor.get_node(1);
+                    accessor.start_epoch();
+					std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                    accessor.end_epoch();
+					if(rand() % 2 == 0) {
+						accessor.reuse(node);
+					}
+					else {
+						delete node;
+					}
+				}
+			});
 		}
 
 		for(auto& th : test_threads) {

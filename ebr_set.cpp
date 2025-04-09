@@ -53,8 +53,8 @@ bool EbrLfSet::contains(int x) {
     return result;
 }
 
-EbrLfSet::Accessor EbrLfSet::get_accessor() {
-    return Accessor { this };
+EbrLfSet::Accessor* EbrLfSet::new_accessor() {
+    return new Accessor { this };
 }
 
 void EbrLfSet::find(Ebr::Accessor* ebr_accessor, int x, LfNode*& prev, LfNode*& curr) {
@@ -83,9 +83,11 @@ void EbrLfSet::find(Ebr::Accessor* ebr_accessor, int x, LfNode*& prev, LfNode*& 
 
 bool EbrLfSet::add(Ebr::Accessor* ebr_accessor, int x) {
     auto p = ebr_accessor->get_node(x);
+    std::atomic_thread_fence(std::memory_order_seq_cst);
     ebr_accessor->start_epoch();
     while(true) {
-        LfNode* prev, * curr;
+        LfNode* prev;
+        LfNode* curr;
         find(ebr_accessor, x, prev, curr);
 
         if(curr->key == x) {
@@ -106,7 +108,8 @@ bool EbrLfSet::add(Ebr::Accessor* ebr_accessor, int x) {
 bool EbrLfSet::remove(Ebr::Accessor* ebr_accessor, int x) {
     ebr_accessor->start_epoch();
     while(true) {
-        LfNode* prev, * curr;
+        LfNode* prev;
+        LfNode* curr;
         find(ebr_accessor, x, prev, curr);
         if(curr->key != x) {
             ebr_accessor->end_epoch();
@@ -116,8 +119,9 @@ bool EbrLfSet::remove(Ebr::Accessor* ebr_accessor, int x) {
             LfNode* succ = curr->next.get_ptr();
             if(false == curr->next.cas(succ, succ, false, true))
                 continue;
-            if(true == prev->next.cas(curr, succ, false, false))
+            if(true == prev->next.cas(curr, succ, false, false)) {
                 ebr_accessor->reuse(curr);
+            }
             ebr_accessor->end_epoch();
             return true;
         }

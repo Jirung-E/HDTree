@@ -107,10 +107,12 @@ void Ebr::reuse(int idx, LfNode* node) {
     node->ebr_number = epoch_counter;
     free_queue[idx].push(node);
 }
+
 void Ebr::start_epoch(int idx) {
     int epoch = epoch_counter++;
     epoch_array[idx].value = epoch;
 }
+
 void Ebr::end_epoch(int idx) {
     epoch_array[idx].value = 0;
 }
