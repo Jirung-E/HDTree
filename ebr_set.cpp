@@ -1,5 +1,7 @@
 #include "ebr_set.h"
 
+#include <stdexcept>
+
 
 EbrLfSet::Accessor::Accessor(EbrLfSet* set):
     set { set },
@@ -58,7 +60,14 @@ bool EbrLfSet::contains(int x) {
 }
 
 EbrLfSet::Accessor* EbrLfSet::new_accessor() {
-    return new Accessor { this };
+    //return new Accessor { this };
+    // 에러 처리가 필요한 경우 아래 코드로 변경
+    try {
+        return new Accessor { this };
+    }
+    catch(const std::out_of_range& e) {
+        return nullptr;
+    }
 }
 
 void EbrLfSet::find(Ebr::Accessor* ebr_accessor, int x, LfNode*& prev, LfNode*& curr) {

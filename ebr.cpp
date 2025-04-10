@@ -1,7 +1,6 @@
 #include "ebr.h"
 
-#include <iostream>
-#include <queue>
+#include <stdexcept>
 
 
 Sptr::Sptr(): sptr { 0 } {
@@ -100,7 +99,14 @@ void Ebr::reset_accessor_counter() {
 }
 
 Ebr::Accessor Ebr::get_accessor() {
-    return Accessor { this, accessor_counter++ };
+    int accessor_idx = accessor_counter.load();
+    accessor_counter++;
+
+    if(accessor_idx >= epoch_array.size()) {
+        throw std::out_of_range("Accessor index out of range");
+    }
+
+    return Accessor { this, accessor_idx };
 }
 
 void Ebr::reuse(int idx, LfNode* node) {

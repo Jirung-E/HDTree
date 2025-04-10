@@ -7,7 +7,7 @@
 #include <chrono>
 
 
-const int NUM_TEST = 400'000;
+const int NUM_TEST = 4'000'000;
 const int KEY_RANGE = 1000;
 const int MAX_THREADS = 12;	// 현재컴퓨터가 6코어 12스레드임
 const int NUM_THREADS_SET[] { 1, 2, 3, 4, 6, 12 };
@@ -181,7 +181,7 @@ void test() {
 int main() {
 	using namespace std::chrono;
 
-	//test_history();
+	test_history();
 
 	while(true) {
 		const int parallel_set_count = 1;
@@ -189,40 +189,6 @@ int main() {
 		test_threads.reserve(parallel_set_count);
 		for(int i=0; i<parallel_set_count; ++i) {
 			test_threads.emplace_back(test);
-		}
-
-		for(auto& th : test_threads) {
-			th.join();
-		}
-	}
-
-
-	while(true) {
-        Ebr ebr { MAX_THREADS };
-
-		std::vector<Ebr::Accessor> accessors;
-        accessors.reserve(MAX_THREADS);
-		for(int i=0; i<MAX_THREADS; ++i) {
-            accessors.push_back(ebr.get_accessor());
-		}
-
-		std::vector<std::thread> test_threads;
-		test_threads.reserve(MAX_THREADS);
-		for(auto& accessor : accessors) {
-			test_threads.emplace_back([&]() {
-				for(int i=0; i<NUM_TEST; ++i) {
-					auto node = accessor.get_node(1);
-                    accessor.start_epoch();
-					std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                    accessor.end_epoch();
-					if(rand() % 2 == 0) {
-						accessor.reuse(node);
-					}
-					else {
-						delete node;
-					}
-				}
-			});
 		}
 
 		for(auto& th : test_threads) {
