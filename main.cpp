@@ -183,18 +183,18 @@ int main() {
 
 	//test_history();
 
-	//while(true) {
-	//	const int parallel_set_count = 1;
-	//	std::vector<std::thread> test_threads;
-	//	test_threads.reserve(parallel_set_count);
-	//	for(int i=0; i<parallel_set_count; ++i) {
-	//		test_threads.emplace_back(test);
-	//	}
+	while(true) {
+		const int parallel_set_count = 1;
+		std::vector<std::thread> test_threads;
+		test_threads.reserve(parallel_set_count);
+		for(int i=0; i<parallel_set_count; ++i) {
+			test_threads.emplace_back(test);
+		}
 
-	//	for(auto& th : test_threads) {
-	//		th.join();
-	//	}
-	//}
+		for(auto& th : test_threads) {
+			th.join();
+		}
+	}
 
 
 	while(true) {

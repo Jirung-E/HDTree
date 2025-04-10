@@ -28,6 +28,7 @@ public:
 
 public:
     EbrLfSet(int max_threads);
+    ~EbrLfSet();
 
 public:
     void clear();

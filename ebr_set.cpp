@@ -29,6 +29,10 @@ EbrLfSet::EbrLfSet(int max_threads):
     head.next.set_ptr(&tail);
 }
 
+EbrLfSet::~EbrLfSet() {
+    clear();
+}
+
 
 void EbrLfSet::clear() {
     while(head.next.get_ptr() != &tail) {
@@ -117,8 +121,9 @@ bool EbrLfSet::remove(Ebr::Accessor* ebr_accessor, int x) {
         }
         else {
             LfNode* succ = curr->next.get_ptr();
-            if(false == curr->next.cas(succ, succ, false, true))
+            if(false == curr->next.cas(succ, succ, false, true)) {
                 continue;
+            }
             if(true == prev->next.cas(curr, succ, false, false)) {
                 ebr_accessor->reuse(curr);
             }
